@@ -24,6 +24,7 @@ function NavItem({ to, label }) {
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { session, logout } = useAuth()
+  const email = session?.employee?.email
 
   const sidebar = (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -59,7 +60,7 @@ export default function AdminLayout() {
         <p className="text-xs font-semibold text-slate-900">Admin console</p>
         <p className="mt-1 text-xs text-slate-500">Manage content & leads.</p>
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="truncate text-xs font-semibold text-slate-600">{session?.email ?? 'Admin'}</span>
+          <span className="truncate text-xs font-semibold text-slate-600">{email ?? 'Admin'}</span>
           <button
             type="button"
             onClick={() => {
@@ -98,7 +99,7 @@ export default function AdminLayout() {
                     Menu
                   </button>
                   <span className="hidden rounded-full bg-emerald-700 px-3 py-2 text-xs font-semibold text-white sm:inline-flex">
-                    {session?.email ?? 'Admin'}
+                    {email ?? 'Admin'}
                   </span>
                   <button
                     type="button"

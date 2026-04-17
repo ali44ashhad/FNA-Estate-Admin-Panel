@@ -1,17 +1,20 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useState } from 'react'
+import {
+  clearAccessToken,
+  clearEmployeeSession,
+  getAccessToken,
+  getEmployeeSession,
+  setAccessToken,
+  setEmployeeSession,
+} from '../shared/auth/authStorage.js'
 
 const AuthContext = createContext(null)
 
-const STORAGE_KEY = 'fna.admin.session'
-
 function readSession() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+  const accessToken = getAccessToken()
+  const employee = getEmployeeSession()
+  return accessToken && employee ? { accessToken, employee } : null
 }
 
 export function AuthProvider({ children }) {
@@ -20,24 +23,18 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       session,
-      isAuthed: Boolean(session),
-      login: ({ email }) => {
-        const next = { email: String(email).toLowerCase(), name: 'Admin' }
+      isAuthed: Boolean(session?.accessToken),
+      login: ({ employee, accessToken }) => {
+        const next = { employee, accessToken }
         setSession(next)
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-        } catch {
-          // ignore
-        }
+        setAccessToken(accessToken)
+        setEmployeeSession(employee)
         return next
       },
       logout: () => {
         setSession(null)
-        try {
-          localStorage.removeItem(STORAGE_KEY)
-        } catch {
-          // ignore
-        }
+        clearAccessToken()
+        clearEmployeeSession()
       },
     }),
     [session],

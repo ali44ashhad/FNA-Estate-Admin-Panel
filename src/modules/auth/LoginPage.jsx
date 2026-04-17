@@ -3,6 +3,8 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Container from '../../shared/components/Container.jsx'
 import { ROUTES } from '../../shared/constants/routes.js'
 import { useAuth } from '../../app/auth.context.jsx'
+import { request } from '../../shared/api/http.js'
+import { setAccessToken, setEmployeeSession } from '../../shared/auth/authStorage.js'
 
 function useNextPath() {
   const { search } = useLocation()
@@ -34,12 +36,25 @@ export default function LoginPage() {
     }
 
     setLoading(true)
-    // demo client-side auth: replace with backend auth later
-    window.setTimeout(() => {
-      login({ email })
-      setLoading(false)
+    try {
+      const res = await request('/api/auth/employee/login', {
+        method: 'POST',
+        body: { email: email.trim(), password },
+      })
+
+      const accessToken = res?.data?.accessToken
+      const employee = res?.data?.employee
+      if (!accessToken || !employee) throw new Error('Login failed')
+
+      setAccessToken(accessToken)
+      setEmployeeSession(employee)
+      login({ employee, accessToken })
       navigate(nextPath, { replace: true })
-    }, 350)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -97,9 +112,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              This is a UI-only login. Connect backend auth when ready.
-            </p>
+            <p className="mt-4 text-center text-xs text-slate-500">Use your employee credentials to sign in.</p>
           </form>
         </div>
       </Container>
