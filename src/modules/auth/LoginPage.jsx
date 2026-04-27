@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Container from '../../shared/components/Container.jsx'
 import { ROUTES } from '../../shared/constants/routes.js'
+import { getDefaultPathForRole, isNextPathAllowedForRole } from '../../shared/routing/roleHome.js'
 import { useAuth } from '../../app/auth.context.jsx'
 import { request } from '../../shared/api/http.js'
 import { setAccessToken, setEmployeeSession } from '../../shared/auth/authStorage.js'
@@ -18,14 +19,14 @@ function useNextPath() {
 export default function LoginPage() {
   const navigate = useNavigate()
   const nextPath = useNextPath()
-  const { isAuthed, login } = useAuth()
+  const { isAuthed, session, login } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  if (isAuthed) return <Navigate to={ROUTES.dashboard} replace />
+  if (isAuthed) return <Navigate to={getDefaultPathForRole(session?.employee?.role)} replace />
 
   async function onSubmit(e) {
     e.preventDefault()
@@ -49,7 +50,9 @@ export default function LoginPage() {
       setAccessToken(accessToken)
       setEmployeeSession(employee)
       login({ employee, accessToken })
-      navigate(nextPath, { replace: true })
+      const role = employee?.role
+      const dest = isNextPathAllowedForRole(nextPath, role) ? nextPath : getDefaultPathForRole(role)
+      navigate(dest, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -65,8 +68,8 @@ export default function LoginPage() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700 text-base font-bold text-white">
               FNA
             </div>
-            <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">Admin login</h1>
-            <p className="mt-2 text-sm text-slate-600">Sign in to access the panel.</p>
+            <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">Team login</h1>
+            <p className="mt-2 text-sm text-slate-600">Sign in to open your role-based portal (Admin, Ops, or Sales).</p>
           </div>
 
           <form onSubmit={onSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

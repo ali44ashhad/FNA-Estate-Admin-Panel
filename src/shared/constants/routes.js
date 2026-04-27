@@ -9,5 +9,9 @@ export const ROUTES = {
   employees: '/admin/employees',
   users: '/admin/users',
   profile: '/admin/profile',
+  /** Role: operations (Ops portal home). */
+  opsHome: '/ops',
+  /** Role: sales (Sales portal home). */
+  salesHome: '/sales',
 }
 
