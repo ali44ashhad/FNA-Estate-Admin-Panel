@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import ToggleSwitch from '../../shared/components/ToggleSwitch.jsx'
+import { request } from '../../shared/api/http.js'
 
 const roleOptions = /** @type {const} */ ([
   { value: 'all', label: 'All roles' },
@@ -8,19 +9,10 @@ const roleOptions = /** @type {const} */ ([
   { value: 'sales', label: 'Sales' },
 ])
 
-const cityOptions = /** @type {const} */ ([
-  { value: '', label: 'Select city' },
-  { value: 'noida', label: 'Noida' },
-  { value: 'gurugram', label: 'Gurugram' },
-  { value: 'pune', label: 'Pune' },
-  { value: 'jaipur', label: 'Jaipur' },
-])
-
-const initialEmployees = [
-  { id: 'e1', name: 'Amit Sharma', email: 'amit@fnaestate.example', role: 'admin', city: '', active: true, onboarded: true },
-  { id: 'e2', name: 'Neha Verma', email: 'neha@fnaestate.example', role: 'operations', city: 'noida', active: true, onboarded: true },
-  { id: 'e3', name: 'Rahul Singh', email: 'rahul@fnaestate.example', role: 'sales', city: 'gurugram', active: false, onboarded: false },
-]
+function formatCityLabel(city) {
+  if (!city) return '—'
+  return city.state ? `${city.name}, ${city.state}` : city.name
+}
 
 function RoleBadge({ role }) {
   const map = {
@@ -32,32 +24,57 @@ function RoleBadge({ role }) {
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${cls}`}>{role}</span>
 }
 
-function OnboardingForm({ onCreate, onClose }) {
+function OnboardingForm({ cities, onCreate, onClose }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [role, setRole] = useState('sales')
-  const [city, setCity] = useState('')
-  const [sendInvite, setSendInvite] = useState(true)
-  const [active, setActive] = useState(true)
+  const [cityId, setCityId] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const roleNeedsCity = role === 'sales' || role === 'operations'
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault()
-    if (!name.trim() || !email.trim()) return
-    if (roleNeedsCity && !city) return
+    setError('')
 
-    onCreate({
-      id: `e_${Date.now()}`,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      role,
-      city: roleNeedsCity ? city : '',
-      active,
-      onboarded: sendInvite,
-    })
+    const nextName = name.trim()
+    const nextEmail = email.trim().toLowerCase()
 
-    onClose()
+    if (!nextName || !nextEmail || !password) {
+      setError('Name, email, and password are required.')
+      return
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (roleNeedsCity && !cityId) {
+      setError('City is required for Sales/Operations.')
+      return
+    }
+
+    setCreating(true)
+    try {
+      const body = {
+        name: nextName,
+        email: nextEmail,
+        password,
+        role,
+        ...(cityId ? { cityId } : {}),
+      }
+      const res = await request('/api/employees', { method: 'POST', body, auth: true })
+      const employee = res?.data
+      if (!employee?.id) throw new Error(res?.message || 'Failed to create employee')
+      onCreate(employee)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create employee')
+    } finally {
+      setCreating(false)
+    }
   }
 
   return (
@@ -65,7 +82,7 @@ function OnboardingForm({ onCreate, onClose }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-slate-900">Employee onboarding</h3>
-          <p className="mt-1 text-sm text-slate-600">Create employee account and optionally send invite.</p>
+          <p className="mt-1 text-sm text-slate-600">Create an employee account (admin-only).</p>
         </div>
         <button
           type="button"
@@ -104,6 +121,31 @@ function OnboardingForm({ onCreate, onClose }) {
           />
         </div>
 
+        <div className="sm:col-span-2">
+          <label className="text-xs font-semibold text-slate-700" htmlFor="emp-password">
+            Password
+          </label>
+          <div className="mt-1 flex items-center gap-2">
+            <input
+              id="emp-password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+              placeholder="Minimum 6 characters"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">This sets the employee’s initial login password.</p>
+        </div>
+
         <div className="sm:col-span-1">
           <label className="text-xs font-semibold text-slate-700" htmlFor="emp-role">
             Role
@@ -113,7 +155,7 @@ function OnboardingForm({ onCreate, onClose }) {
             value={role}
             onChange={(e) => {
               setRole(e.target.value)
-              setCity('')
+              setCityId('')
             }}
             className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
           >
@@ -121,7 +163,7 @@ function OnboardingForm({ onCreate, onClose }) {
             <option value="operations">Operations</option>
             <option value="sales">Sales</option>
           </select>
-          <p className="mt-1 text-xs text-slate-500">Role-based access can be enforced later with backend auth.</p>
+          <p className="mt-1 text-xs text-slate-500">Backend enforces admin-only access for this page.</p>
         </div>
 
         <div className="sm:col-span-1">
@@ -130,8 +172,8 @@ function OnboardingForm({ onCreate, onClose }) {
           </label>
           <select
             id="emp-city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
             disabled={!roleNeedsCity}
             className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
               roleNeedsCity
@@ -139,9 +181,10 @@ function OnboardingForm({ onCreate, onClose }) {
                 : 'border-slate-200 bg-slate-50 text-slate-400'
             }`}
           >
-            {cityOptions.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
+            <option value="">{cities?.length ? 'Select city' : 'No cities found'}</option>
+            {(cities || []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {formatCityLabel(c)}
               </option>
             ))}
           </select>
@@ -152,16 +195,9 @@ function OnboardingForm({ onCreate, onClose }) {
           )}
         </div>
 
-        <div className="sm:col-span-2 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-slate-900">Send invite</span>
-            <ToggleSwitch enabled={sendInvite} onChange={setSendInvite} label="Send invite" />
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-slate-900">Active</span>
-            <ToggleSwitch enabled={active} onChange={setActive} label="Employee active" />
-          </div>
-        </div>
+        {error ? (
+          <div className="sm:col-span-2 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{error}</div>
+        ) : null}
 
         <div className="sm:col-span-2 flex flex-wrap items-center justify-end gap-2">
           <button
@@ -171,8 +207,12 @@ function OnboardingForm({ onCreate, onClose }) {
           >
             Cancel
           </button>
-          <button type="submit" className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
-            Create employee
+          <button
+            type="submit"
+            disabled={creating}
+            className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {creating ? 'Creating…' : 'Create employee'}
           </button>
         </div>
       </form>
@@ -183,8 +223,61 @@ function OnboardingForm({ onCreate, onClose }) {
 export default function EmployeesPage() {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [employees, setEmployees] = useState(initialEmployees)
+  const [employees, setEmployees] = useState([])
+  const [employeesLoading, setEmployeesLoading] = useState(true)
+  const [cities, setCities] = useState([])
+  const [citiesLoading, setCitiesLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+
+    async function loadCities() {
+      setCitiesLoading(true)
+      try {
+        const res = await request('/api/cities')
+        const data = Array.isArray(res?.data) ? res.data : []
+        if (!alive) return
+        setCities(data)
+      } catch (err) {
+        if (!alive) return
+        setError(err instanceof Error ? err.message : 'Failed to load cities')
+      } finally {
+        if (!alive) return
+        setCitiesLoading(false)
+      }
+    }
+
+    async function loadEmployees() {
+      setEmployeesLoading(true)
+      try {
+        const res = await request('/api/employees', { auth: true })
+        const data = Array.isArray(res?.data) ? res.data : []
+        if (!alive) return
+        setEmployees(data)
+      } catch (err) {
+        if (!alive) return
+        setError(err instanceof Error ? err.message : 'Failed to load employees')
+      } finally {
+        if (!alive) return
+        setEmployeesLoading(false)
+      }
+    }
+
+    void loadCities()
+    void loadEmployees()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const cityById = useMemo(() => {
+    const map = new Map()
+    for (const c of cities) map.set(c.id, c)
+    return map
+  }, [cities])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -200,7 +293,7 @@ export default function EmployeesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Employees</h2>
-          <p className="mt-1 text-sm text-slate-600">Role-based filter, status toggle, and onboarding.</p>
+          <p className="mt-1 text-sm text-slate-600">List and onboard employees (admin only).</p>
         </div>
 
         <div className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
@@ -231,8 +324,11 @@ export default function EmployeesPage() {
         </div>
       </div>
 
+      {error ? <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
+
       {showOnboarding ? (
         <OnboardingForm
+          cities={cities}
           onCreate={(emp) => setEmployees((prev) => [emp, ...prev])}
           onClose={() => setShowOnboarding(false)}
         />
@@ -247,11 +343,17 @@ export default function EmployeesPage() {
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3">City</th>
-              <th className="px-4 py-3">Onboarded</th>
-              <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3">Created</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white">
+            {employeesLoading || citiesLoading ? (
+              <tr>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={5}>
+                  Loading…
+                </td>
+              </tr>
+            ) : null}
             {filtered.map((e) => (
               <tr key={e.id} className="hover:bg-slate-50/70">
                 <td className="px-4 py-3 font-semibold text-slate-900">{e.name}</td>
@@ -259,30 +361,19 @@ export default function EmployeesPage() {
                 <td className="px-4 py-3">
                   <RoleBadge role={e.role} />
                 </td>
-                <td className="px-4 py-3 text-slate-600">{e.city ? cityOptions.find((c) => c.value === e.city)?.label : '—'}</td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      e.onboarded ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'
-                    }`}
-                  >
-                    {e.onboarded ? 'Yes' : 'Pending'}
+                  <span className="text-slate-600">
+                    {e.cityId ? formatCityLabel(cityById.get(e.cityId)) : '—'}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <ToggleSwitch
-                    enabled={e.active}
-                    label={`Toggle ${e.name} active`}
-                    onChange={(next) =>
-                      setEmployees((prev) => prev.map((x) => (x.id === e.id ? { ...x, active: next } : x)))
-                    }
-                  />
+                  <span className="text-slate-600">{e.createdAt ? new Date(e.createdAt).toLocaleString() : '—'}</span>
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 ? (
+            {!employeesLoading && !citiesLoading && filtered.length === 0 ? (
               <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={5}>
                   No results
                 </td>
               </tr>
