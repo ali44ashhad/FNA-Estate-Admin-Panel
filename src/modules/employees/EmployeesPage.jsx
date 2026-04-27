@@ -235,34 +235,34 @@ export default function EmployeesPage() {
 
     async function loadCities() {
       setCitiesLoading(true)
+      let data = []
       try {
         const res = await request('/api/cities')
-        const data = Array.isArray(res?.data) ? res.data : []
-        if (!alive) return
-        setCities(data)
+        data = Array.isArray(res?.data) ? res.data : []
       } catch (err) {
-        if (!alive) return
-        setError(err instanceof Error ? err.message : 'Failed to load cities')
+        if (alive) setError(err instanceof Error ? err.message : 'Failed to load cities')
       } finally {
-        if (!alive) return
-        setCitiesLoading(false)
+        if (alive) setCitiesLoading(false)
       }
+
+      if (!alive) return
+      setCities(data)
     }
 
     async function loadEmployees() {
       setEmployeesLoading(true)
+      let data = []
       try {
         const res = await request('/api/employees', { auth: true })
-        const data = Array.isArray(res?.data) ? res.data : []
-        if (!alive) return
-        setEmployees(data)
+        data = Array.isArray(res?.data) ? res.data : []
       } catch (err) {
-        if (!alive) return
-        setError(err instanceof Error ? err.message : 'Failed to load employees')
+        if (alive) setError(err instanceof Error ? err.message : 'Failed to load employees')
       } finally {
-        if (!alive) return
-        setEmployeesLoading(false)
+        if (alive) setEmployeesLoading(false)
       }
+
+      if (!alive) return
+      setEmployees(data)
     }
 
     void loadCities()

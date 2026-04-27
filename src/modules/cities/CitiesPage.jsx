@@ -3,16 +3,17 @@ import { request } from '../../shared/api/http.js'
 import ConfirmDialog from '../../shared/components/ConfirmDialog.jsx'
 
 function CityModal({ open, mode, initialValue, saving, error, onClose, onSubmit }) {
-  const [name, setName] = useState('')
-  const [state, setState] = useState('')
-  const [pincode, setPincode] = useState('')
+  const seeded = useMemo(() => {
+    return {
+      name: initialValue?.name ?? '',
+      state: initialValue?.state ?? '',
+      pincode: initialValue?.pincode ?? '',
+    }
+  }, [initialValue])
 
-  useEffect(() => {
-    if (!open) return
-    setName(initialValue?.name ?? '')
-    setState(initialValue?.state ?? '')
-    setPincode(initialValue?.pincode ?? '')
-  }, [open, initialValue])
+  const [name, setName] = useState(seeded.name)
+  const [state, setState] = useState(seeded.state)
+  const [pincode, setPincode] = useState(seeded.pincode)
 
   if (!open) return null
 
@@ -130,18 +131,18 @@ export default function CitiesPage() {
     async function loadCities() {
       setLoading(true)
       setError('')
+      let data = []
       try {
         const res = await request('/api/cities')
-        const data = Array.isArray(res?.data) ? res.data : []
-        if (!alive) return
-        setCities(data)
+        data = Array.isArray(res?.data) ? res.data : []
       } catch (err) {
-        if (!alive) return
-        setError(err instanceof Error ? err.message : 'Failed to load cities')
+        if (alive) setError(err instanceof Error ? err.message : 'Failed to load cities')
       } finally {
-        if (!alive) return
-        setLoading(false)
+        if (alive) setLoading(false)
       }
+
+      if (!alive) return
+      setCities(data)
     }
 
     void loadCities()
@@ -328,6 +329,7 @@ export default function CitiesPage() {
       </div>
 
       <CityModal
+        key={`${modalMode}:${editing?.id ?? 'new'}:${modalOpen ? 'open' : 'closed'}`}
         open={modalOpen}
         mode={modalMode}
         initialValue={editing}

@@ -13,18 +13,18 @@ export default function UsersPage() {
     async function loadUsers() {
       setUsersLoading(true)
       setError('')
+      let data = []
       try {
         const res = await request('/api/users', { auth: true })
-        const data = Array.isArray(res?.data) ? res.data : []
-        if (!alive) return
-        setUsers(data)
+        data = Array.isArray(res?.data) ? res.data : []
       } catch (err) {
-        if (!alive) return
-        setError(err instanceof Error ? err.message : 'Failed to load users')
+        if (alive) setError(err instanceof Error ? err.message : 'Failed to load users')
       } finally {
-        if (!alive) return
-        setUsersLoading(false)
+        if (alive) setUsersLoading(false)
       }
+
+      if (!alive) return
+      setUsers(data)
     }
 
     void loadUsers()

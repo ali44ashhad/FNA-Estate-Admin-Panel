@@ -1,104 +1,167 @@
-import { useMemo, useState } from 'react'
-import ToggleSwitch from '../../shared/components/ToggleSwitch.jsx'
-
-const initialProjects = [
-  { id: 'p1', title: 'Trump Towers', city: 'Noida', category: 'Residential', active: true, featured: true },
-  { id: 'p2', title: 'Kadamshree Anandam', city: 'Mathura', category: 'Plots', active: true, featured: false },
-  { id: 'p3', title: 'M3M Jacob And Co Residences', city: 'Noida', category: 'Residential', active: true, featured: true },
-  { id: 'p4', title: 'Aditya The Kutumb', city: 'Ghaziabad', category: 'Residential', active: false, featured: false },
-]
+import ConfirmDialog from '../../shared/components/ConfirmDialog.jsx'
+import { useState } from 'react'
+import { createProject, updateProject } from './api/projects.api.js'
+import ProjectModal from './components/ProjectModal.jsx'
+import ProjectsFilters from './components/ProjectsFilters.jsx'
+import ProjectsPagination from './components/ProjectsPagination.jsx'
+import ProjectsTable from './components/ProjectsTable.jsx'
+import ProjectsToolbar from './components/ProjectsToolbar.jsx'
+import { useCities } from './hooks/useCities.js'
+import { useProjects } from './hooks/useProjects.js'
+import { useProjectsPageState } from './hooks/useProjectsPageState.js'
 
 export default function ProjectsPage() {
-  const [query, setQuery] = useState('')
-  const [projects, setProjects] = useState(initialProjects)
+  const { filters, setFilters, page, setPage, limit, setLimit } = useProjectsPageState()
+  const { cities, loading: citiesLoading, error: citiesError } = useCities()
+  const { projects, meta, loading, error, setError, refresh, remove } = useProjects({ filters, page, limit })
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return projects
-    return projects.filter((p) => `${p.title} ${p.city} ${p.category}`.toLowerCase().includes(q))
-  }, [projects, query])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState('create')
+  const [editing, setEditing] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [modalError, setModalError] = useState('')
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deletingId, setDeletingId] = useState('')
+
+  function openCreate() {
+    setModalError('')
+    setModalMode('create')
+    setEditing(null)
+    setModalOpen(true)
+  }
+
+  function openEdit(project) {
+    setModalError('')
+    setModalMode('edit')
+    setEditing(project)
+    setModalOpen(true)
+  }
+
+  function closeModal() {
+    if (saving) return
+    setModalOpen(false)
+  }
+
+  async function submitModal(payload) {
+    setModalError('')
+    setSaving(true)
+    try {
+      if (modalMode === 'edit' && editing?.id) {
+        const updated = await updateProject(editing.id, payload)
+        if (!updated?.id) throw new Error('Update failed')
+      } else {
+        const created = await createProject(payload)
+        if (!created?.id) throw new Error('Create failed')
+      }
+      setModalOpen(false)
+      await refresh(page)
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function askDelete(project) {
+    if (!project?.id) return
+    setPendingDelete(project)
+    setConfirmDeleteOpen(true)
+  }
+
+  function closeDeleteConfirm() {
+    if (deletingId) return
+    setConfirmDeleteOpen(false)
+    setPendingDelete(null)
+  }
+
+  async function confirmDelete() {
+    const project = pendingDelete
+    if (!project?.id) return
+    setDeletingId(project.id)
+    try {
+      await remove({
+        id: project.id,
+        itemsOnPage: projects.length,
+        currentPage: page,
+        onPageChange: (p) => setPage(p),
+      })
+      setConfirmDeleteOpen(false)
+      setPendingDelete(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed')
+    } finally {
+      setDeletingId('')
+    }
+  }
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Projects</h2>
-          <p className="mt-1 text-sm text-slate-600">Control visibility, featured flag, and status.</p>
-        </div>
-        <div className="flex w-full max-w-md gap-2">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search project…"
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
-          />
-          <button
-            type="button"
-            className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            Add
-          </button>
-        </div>
-      </div>
+      <ProjectsToolbar onCreate={openCreate} />
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
-            <tr>
-              <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3">City</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Active</th>
-              <th className="px-4 py-3">Featured</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
-            {filtered.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-50/70">
-                <td className="px-4 py-3 font-semibold text-slate-900">{p.title}</td>
-                <td className="px-4 py-3 text-slate-600">{p.city}</td>
-                <td className="px-4 py-3 text-slate-600">{p.category}</td>
-                <td className="px-4 py-3">
-                  <ToggleSwitch
-                    enabled={p.active}
-                    label={`Toggle ${p.title} active`}
-                    onChange={(next) =>
-                      setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, active: next } : x)))
-                    }
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <ToggleSwitch
-                    enabled={p.featured}
-                    label={`Toggle ${p.title} featured`}
-                    onChange={(next) =>
-                      setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, featured: next } : x)))
-                    }
-                  />
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
-                  No results
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-        </div>
-      </div>
+      {citiesError ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{citiesError}</p>
+      ) : null}
+
+      <ProjectsFilters
+        cities={cities}
+        citiesLoading={citiesLoading}
+        filters={filters}
+        onChangeFilters={setFilters}
+        onResetPage={() => setPage(1)}
+      />
+
+      <ProjectsPagination
+        meta={meta}
+        page={page}
+        limit={limit}
+        loading={loading}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => p + 1)}
+        onSetLimit={(n) => {
+          setLimit(n)
+          setPage(1)
+        }}
+        onClearFilters={() => {
+          setFilters({ cityId: '', propertyType: '', minPrice: '', maxPrice: '' })
+          setPage(1)
+        }}
+      />
+
+      {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p> : null}
+
+      <ProjectsTable
+        projects={projects}
+        loading={loading}
+        deletingId={deletingId}
+        onEdit={openEdit}
+        onAskDelete={askDelete}
+      />
+
+      <ProjectModal
+        key={`${modalMode}:${editing?.id ?? 'new'}:${modalOpen ? 'open' : 'closed'}`}
+        open={modalOpen}
+        mode={modalMode}
+        cities={cities}
+        initialValue={editing}
+        saving={saving}
+        error={modalError}
+        onClose={closeModal}
+        onSubmit={submitModal}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete project?"
+        description={pendingDelete ? `This will remove ${pendingDelete.name} from active projects.` : ''}
+        confirmText={pendingDelete ? `Delete ${pendingDelete.name}` : 'Delete'}
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={Boolean(deletingId)}
+        onClose={closeDeleteConfirm}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }
