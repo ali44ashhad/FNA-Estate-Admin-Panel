@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatCityLabel, parseImagesInput, PROPERTY_TYPE_OPTIONS } from '../projects.utils.js'
+import { formatCityLabel, parseAmenitiesInput, parseImagesInput, PROPERTY_TYPE_OPTIONS } from '../projects.utils.js'
 
 export default function ProjectModal({ open, mode, cities, initialValue, saving, error, onClose, onSubmit }) {
   const seeded = useMemo(() => {
@@ -28,7 +28,12 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
     const imgs = Array.isArray(initialValue?.images) ? initialValue.images : []
     const imagesText = imgs.join('\n')
 
-    return { name, cityId, propertyType, status, pricingType, directMin, directMax, units, imagesText }
+    const ams = Array.isArray(initialValue?.amenities) ? initialValue.amenities : []
+    const amenitiesText = ams.join('\n')
+
+    const description = initialValue?.description ?? ''
+
+    return { name, cityId, propertyType, status, pricingType, directMin, directMax, units, imagesText, amenitiesText, description }
   }, [initialValue])
 
   const [name, setName] = useState(seeded.name)
@@ -40,6 +45,8 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
   const [directMax, setDirectMax] = useState(seeded.directMax)
   const [units, setUnits] = useState(seeded.units)
   const [imagesText, setImagesText] = useState(seeded.imagesText)
+  const [amenitiesText, setAmenitiesText] = useState(seeded.amenitiesText)
+  const [description, setDescription] = useState(seeded.description)
   const [localError, setLocalError] = useState('')
 
   if (!open) return null
@@ -67,6 +74,8 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
     if (!nextStatus) return { ok: false, message: 'Status is required.' }
 
     const images = parseImagesInput(imagesText)
+    const amenities = parseAmenitiesInput(amenitiesText)
+    const nextDescription = String(description ?? '').trim()
 
     if (pricingType === 'direct') {
       const min = Number(directMin)
@@ -84,6 +93,8 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
           pricingType,
           price: { min, max },
           images,
+          amenities,
+          description: nextDescription,
         },
       }
     }
@@ -118,6 +129,8 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
         pricingType,
         units: rows,
         images,
+        amenities,
+        description: nextDescription,
       },
     }
   }
@@ -357,6 +370,35 @@ export default function ProjectModal({ open, mode, cities, initialValue, saving,
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
               placeholder="https://...\nhttps://..."
             />
+          </div>
+
+          <div>
+            <label htmlFor="proj-amenities" className="text-xs font-semibold text-slate-700">
+              Amenities (one per line)
+            </label>
+            <textarea
+              id="proj-amenities"
+              value={amenitiesText}
+              onChange={(e) => setAmenitiesText(e.target.value)}
+              rows={4}
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+              placeholder={'Swimming Pool\nGym\nChildren’s Play Area'}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="proj-description" className="text-xs font-semibold text-slate-700">
+              Description
+            </label>
+            <textarea
+              id="proj-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={6}
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+              placeholder={'Tell buyers about the project...\n\nHighlights:\n- Great connectivity\n- Premium amenities\n- Trusted developer'}
+            />
+            <p className="mt-1 text-xs text-slate-500">Plain text or HTML supported. Saved as-is and rendered on the project details page.</p>
           </div>
 
           {localError ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{localError}</p> : null}

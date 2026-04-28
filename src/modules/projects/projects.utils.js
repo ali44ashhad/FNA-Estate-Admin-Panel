@@ -45,6 +45,15 @@ export function parseImagesInput(text) {
   return [...new Set(parts)]
 }
 
+export function parseAmenitiesInput(text) {
+  const raw = String(text ?? '')
+  const parts = raw
+    .split(/[\n,]+/g)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return [...new Set(parts)]
+}
+
 export function buildProjectsQuery(filters, page, limit) {
   const params = new URLSearchParams()
   if (filters?.cityId) params.set('cityId', filters.cityId)
