@@ -4,7 +4,9 @@ import { buildProjectsQuery } from '../projects.utils.js'
 export function useProjectsPageState() {
   const [filters, setFilters] = useState({
     cityId: '',
-    propertyType: '',
+    category: '',
+    subType: '',
+    apartmentConfig: '',
     minPrice: '',
     maxPrice: '',
   })

@@ -1,4 +1,4 @@
-import { formatCityLabel, summarizePricing } from '../projects.utils.js'
+import { formatCityLabel, summarizeInventory, summarizePricing } from '../projects.utils.js'
 
 export default function ProjectsTable({ projects, loading, deletingId, onEdit, onAskDelete }) {
   return (
@@ -9,8 +9,9 @@ export default function ProjectsTable({ projects, loading, deletingId, onEdit, o
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">City</th>
-              <th className="px-4 py-3">Property type</th>
+              <th className="px-4 py-3">Project code</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Inventory</th>
               <th className="px-4 py-3">Pricing</th>
               <th className="px-4 py-3">Updated</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -19,7 +20,7 @@ export default function ProjectsTable({ projects, loading, deletingId, onEdit, o
           <tbody className="divide-y divide-slate-200 bg-white">
             {loading ? (
               <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={8}>
                   Loading…
                 </td>
               </tr>
@@ -30,8 +31,9 @@ export default function ProjectsTable({ projects, loading, deletingId, onEdit, o
                 <tr key={p.id} className="hover:bg-slate-50/70">
                   <td className="px-4 py-3 font-semibold text-slate-900">{p.name}</td>
                   <td className="px-4 py-3 text-slate-600">{formatCityLabel(p.city)}</td>
-                  <td className="px-4 py-3 text-slate-600">{p.propertyType}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{p.projectCode || '—'}</td>
                   <td className="px-4 py-3 text-slate-600">{p.status}</td>
+                  <td className="px-4 py-3 text-slate-600">{summarizeInventory(p)}</td>
                   <td className="px-4 py-3 text-slate-600">{summarizePricing(p)}</td>
                   <td className="px-4 py-3 text-slate-600">{p.updatedAt ? new Date(p.updatedAt).toLocaleString() : '—'}</td>
                   <td className="px-4 py-3 text-right">
@@ -58,7 +60,7 @@ export default function ProjectsTable({ projects, loading, deletingId, onEdit, o
 
             {!loading && projects.length === 0 ? (
               <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={8}>
                   No projects found
                 </td>
               </tr>

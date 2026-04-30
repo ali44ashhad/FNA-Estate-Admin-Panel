@@ -124,7 +124,7 @@ export default function ProjectsPage() {
           setPage(1)
         }}
         onClearFilters={() => {
-          setFilters({ cityId: '', propertyType: '', minPrice: '', maxPrice: '' })
+          setFilters({ cityId: '', category: '', subType: '', apartmentConfig: '', minPrice: '', maxPrice: '' })
           setPage(1)
         }}
       />

@@ -3,7 +3,7 @@ import { buildProjectsQuery } from '../projects.utils.js'
 
 export async function getProjects({ filters, page, limit }) {
   const queryString = buildProjectsQuery(filters, page, limit)
-  const res = await request(`/api/projects${queryString}`, { auth: true })
+  const res = await request(`/api/projects/admin${queryString}`, { auth: true })
   const items = Array.isArray(res?.data) ? res.data : []
   const meta = res?.meta ?? null
   return { items, meta }
