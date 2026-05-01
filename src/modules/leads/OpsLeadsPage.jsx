@@ -8,7 +8,7 @@ import LeadsToolbar from './components/LeadsToolbar.jsx'
 import { useLeads } from './hooks/useLeads.js'
 import { useLeadsPageState } from './hooks/useLeadsPageState.js'
 
-export default function LeadsPage() {
+export default function OpsLeadsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
     useLeadsPageState()
   const { leads, meta, loading, error, refresh } = useLeads({
@@ -53,7 +53,7 @@ export default function LeadsPage() {
     setPanelError('')
     setSaving(true)
     try {
-      const updated = await updateLead(id, payload)
+      const updated = await updateLead(id, { status: payload?.status })
       if (!updated?.id) throw new Error('Update failed')
       closePanel()
       await refresh(page)
@@ -66,13 +66,23 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-5">
-      <LeadsToolbar title="Leads" total={meta?.total ?? 0} query={query} onChangeQuery={setQuery} />
+      <LeadsToolbar
+        title="Leads"
+        subtitle={
+          <>
+            Ops view: update lead <span className="font-semibold text-slate-800">status</span> and track pipeline.
+          </>
+        }
+        total={meta?.total ?? 0}
+        query={query}
+        onChangeQuery={setQuery}
+      />
 
       <LeadsFilters
         filters={filters}
         sortBy={sortBy}
         sortOrder={sortOrder}
-        canEditAssignments
+        canEditAssignments={false}
         onChangeFilters={setFilters}
         onChangeSortBy={(next) => {
           setSortBy(next)
@@ -111,7 +121,7 @@ export default function LeadsPage() {
       <LeadPanel
         open={panelOpen}
         lead={selected}
-        canEditAssignments
+        canEditAssignments={false}
         saving={saving}
         error={panelError}
         onClose={closePanel}

@@ -11,6 +11,7 @@ export const ROUTES = {
   profile: '/admin/profile',
   /** Role: operations (Ops portal home). */
   opsHome: '/ops',
+  opsLeads: '/ops/leads',
   /** Role: sales (Sales portal home). */
   salesHome: '/sales',
 }

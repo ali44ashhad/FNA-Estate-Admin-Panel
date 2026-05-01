@@ -9,7 +9,10 @@ const OPS_THEME = {
   userPill: 'bg-sky-700',
 }
 
-const OPS_NAV = [{ to: ROUTES.opsHome, label: 'Ops dashboard' }]
+const OPS_NAV = [
+  { to: ROUTES.opsHome, label: 'Ops dashboard' },
+  { to: ROUTES.opsLeads, label: 'Leads' },
+]
 
 export default function OpsLayout() {
   return (

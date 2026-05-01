@@ -14,6 +14,7 @@ import CitiesPage from '../modules/cities/CitiesPage.jsx'
 import ProjectsPage from '../modules/projects/ProjectsPage.jsx'
 import DealsPage from '../modules/deals/DealsPage.jsx'
 import LeadsPage from '../modules/leads/LeadsPage.jsx'
+import OpsLeadsPage from '../modules/leads/OpsLeadsPage.jsx'
 import EmployeesPage from '../modules/employees/EmployeesPage.jsx'
 import UsersPage from '../modules/users/UsersPage.jsx'
 import ProfilePage from '../modules/settings/SettingsPage.jsx'
@@ -58,6 +59,7 @@ export default function App() {
             }
           >
             <Route path={ROUTES.opsHome} element={<OpsDashboardPage />} />
+            <Route path={ROUTES.opsLeads} element={<OpsLeadsPage />} />
           </Route>
 
           <Route
