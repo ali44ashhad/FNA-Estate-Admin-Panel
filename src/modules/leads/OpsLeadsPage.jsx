@@ -7,6 +7,7 @@ import LeadsTable from './components/LeadsTable.jsx'
 import LeadsToolbar from './components/LeadsToolbar.jsx'
 import { useLeads } from './hooks/useLeads.js'
 import { useLeadsPageState } from './hooks/useLeadsPageState.js'
+import { useEmployeesLookup } from '../employees/hooks/useEmployeesLookup.js'
 
 export default function OpsLeadsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
@@ -26,6 +27,16 @@ export default function OpsLeadsPage() {
   const [selected, setSelected] = useState(null)
   const [saving, setSaving] = useState(false)
   const [panelError, setPanelError] = useState('')
+
+  const { employees: opsEmployees } = useEmployeesLookup({ q: '', role: 'operations', page: 1, limit: 200 })
+  const { employees: salesEmployees } = useEmployeesLookup({ q: '', role: 'sales', page: 1, limit: 200 })
+
+  const employeeNameById = useMemo(() => {
+    const map = new Map()
+    for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e.id)
+    for (const e of salesEmployees ?? []) if (e?.id && !map.has(e.id)) map.set(e.id, e?.name || e.id)
+    return map
+  }, [opsEmployees, salesEmployees])
 
   const filtered = useMemo(() => {
     if (!stableQuery) return leads
@@ -116,7 +127,7 @@ export default function OpsLeadsPage() {
 
       {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p> : null}
 
-      <LeadsTable leads={filtered} loading={loading} onOpen={openPanel} />
+      <LeadsTable leads={filtered} loading={loading} employeeNameById={employeeNameById} onOpen={openPanel} />
 
       <LeadPanel
         open={panelOpen}

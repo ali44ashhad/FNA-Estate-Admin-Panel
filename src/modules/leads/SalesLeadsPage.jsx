@@ -7,9 +7,9 @@ import LeadsTable from './components/LeadsTable.jsx'
 import LeadsToolbar from './components/LeadsToolbar.jsx'
 import { useLeads } from './hooks/useLeads.js'
 import { useLeadsPageState } from './hooks/useLeadsPageState.js'
-import { useEmployees } from '../employees/hooks/useEmployees.js'
+import { useEmployeesLookup } from '../employees/hooks/useEmployeesLookup.js'
 
-export default function LeadsPage() {
+export default function SalesLeadsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
     useLeadsPageState()
   const { leads, meta, loading, error, refresh } = useLeads({
@@ -28,25 +28,13 @@ export default function LeadsPage() {
   const [saving, setSaving] = useState(false)
   const [panelError, setPanelError] = useState('')
 
-  const { employees: opsEmployees } = useEmployees({ q: '', role: 'operations', page: 1, limit: 200 })
-  const { employees: salesEmployees } = useEmployees({ q: '', role: 'sales', page: 1, limit: 200 })
-
-  const opsOptions = useMemo(() => {
-    return (opsEmployees ?? [])
-      .filter((e) => e?.id)
-      .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
-  }, [opsEmployees])
-
-  const salesOptions = useMemo(() => {
-    return (salesEmployees ?? [])
-      .filter((e) => e?.id)
-      .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
-  }, [salesEmployees])
+  const { employees: opsEmployees } = useEmployeesLookup({ q: '', role: 'operations', page: 1, limit: 200 })
+  const { employees: salesEmployees } = useEmployeesLookup({ q: '', role: 'sales', page: 1, limit: 200 })
 
   const employeeNameById = useMemo(() => {
     const map = new Map()
-    for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e?.email || e.id)
-    for (const e of salesEmployees ?? []) if (e?.id && !map.has(e.id)) map.set(e.id, e?.name || e?.email || e.id)
+    for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e.id)
+    for (const e of salesEmployees ?? []) if (e?.id && !map.has(e.id)) map.set(e.id, e?.name || e.id)
     return map
   }, [opsEmployees, salesEmployees])
 
@@ -76,7 +64,7 @@ export default function LeadsPage() {
     setPanelError('')
     setSaving(true)
     try {
-      const updated = await updateLead(id, payload)
+      const updated = await updateLead(id, { status: payload?.status })
       if (!updated?.id) throw new Error('Update failed')
       closePanel()
       await refresh(page)
@@ -89,15 +77,24 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-5">
-      <LeadsToolbar title="Leads" total={meta?.total ?? 0} query={query} onChangeQuery={setQuery} />
+      <LeadsToolbar
+        title="My leads"
+        subtitle={
+          <>
+            Leads assigned to you: update <span className="font-semibold text-slate-800">status</span>, add sales notes, and
+            follow up.
+          </>
+        }
+        total={meta?.total ?? 0}
+        query={query}
+        onChangeQuery={setQuery}
+      />
 
       <LeadsFilters
         filters={filters}
         sortBy={sortBy}
         sortOrder={sortOrder}
-        opsOptions={opsOptions}
-        salesOptions={salesOptions}
-        canEditAssignments
+        canEditAssignments={false}
         onChangeFilters={setFilters}
         onChangeSortBy={(next) => {
           setSortBy(next)
@@ -136,9 +133,7 @@ export default function LeadsPage() {
       <LeadPanel
         open={panelOpen}
         lead={selected}
-        canEditAssignments
-        opsOptions={opsOptions}
-        salesOptions={salesOptions}
+        canEditAssignments={false}
         saving={saving}
         error={panelError}
         onClose={closePanel}
@@ -147,4 +142,3 @@ export default function LeadsPage() {
     </div>
   )
 }
-

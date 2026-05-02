@@ -12,8 +12,15 @@ function StatusPill({ status }) {
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${cls}`}>{status || '—'}</span>
 }
 
-export default function LeadsTable({ leads, loading, onOpen }) {
+export default function LeadsTable({ leads, loading, employeeNameById, onOpen }) {
   const items = Array.isArray(leads) ? leads : []
+  const lookup = employeeNameById instanceof Map ? employeeNameById : null
+
+  function resolveEmployeeName({ id, embeddedName }) {
+    if (embeddedName) return embeddedName
+    if (!id) return '—'
+    return lookup?.get(id) || id || '—'
+  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200">
@@ -60,8 +67,12 @@ export default function LeadsTable({ leads, loading, onOpen }) {
                     <p className="font-semibold text-slate-900">{l.user?.name || '—'}</p>
                     <p className="mt-0.5 font-mono text-xs text-slate-500">{l.userId || '—'}</p>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{l.assignedOpsId || '—'}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{l.assignedSalesId || '—'}</td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {resolveEmployeeName({ id: l.assignedOpsId, embeddedName: l.assignedOps?.name })}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {resolveEmployeeName({ id: l.assignedSalesId, embeddedName: l.assignedSales?.name })}
+                  </td>
                   <td className="px-4 py-3 text-slate-600">{formatMaybeDate(l.updatedAt || l.createdAt)}</td>
                   <td className="px-4 py-3 text-right">
                     <button
