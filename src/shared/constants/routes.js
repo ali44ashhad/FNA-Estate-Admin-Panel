@@ -14,5 +14,6 @@ export const ROUTES = {
   opsLeads: '/ops/leads',
   /** Role: sales (Sales portal home). */
   salesHome: '/sales',
+  salesLeads: '/sales/leads',
 }
 

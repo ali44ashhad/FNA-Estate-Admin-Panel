@@ -9,7 +9,10 @@ const SALES_THEME = {
   userPill: 'bg-violet-700',
 }
 
-const SALES_NAV = [{ to: ROUTES.salesHome, label: 'Sales dashboard' }]
+const SALES_NAV = [
+  { to: ROUTES.salesHome, label: 'Sales dashboard' },
+  { to: ROUTES.salesLeads, label: 'Leads' },
+]
 
 export default function SalesLayout() {
   return (

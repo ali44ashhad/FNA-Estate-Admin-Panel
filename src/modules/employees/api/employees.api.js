@@ -18,6 +18,14 @@ export async function getEmployees({ q, role, page, limit }) {
   return { items, meta }
 }
 
+export async function getEmployeesLookup({ q, role, page, limit }) {
+  const queryString = buildEmployeesQuery({ q, role, page, limit })
+  const res = await request(`/api/employees/lookup${queryString}`, { auth: true })
+  const items = Array.isArray(res?.data) ? res.data : []
+  const meta = res?.meta ?? null
+  return { items, meta }
+}
+
 export async function createEmployee(payload) {
   const res = await request('/api/employees', { method: 'POST', body: payload, auth: true })
   return res?.data ?? null

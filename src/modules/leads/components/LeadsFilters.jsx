@@ -4,6 +4,8 @@ export default function LeadsFilters({
   filters,
   sortBy,
   sortOrder,
+  opsOptions = [],
+  salesOptions = [],
   canEditAssignments = false,
   onChangeFilters,
   onChangeSortBy,
@@ -11,6 +13,8 @@ export default function LeadsFilters({
   onResetPage,
 }) {
   const safe = filters ?? {}
+  const safeOpsOptions = Array.isArray(opsOptions) ? opsOptions : []
+  const safeSalesOptions = Array.isArray(salesOptions) ? salesOptions : []
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -61,31 +65,43 @@ export default function LeadsFilters({
 
         {canEditAssignments ? (
           <label className="lg:col-span-2">
-            <span className="text-xs font-semibold text-slate-700">Assigned Ops ID</span>
-            <input
+            <span className="text-xs font-semibold text-slate-700">Assigned Ops</span>
+            <select
               value={safe.assignedOpsId ?? ''}
               onChange={(e) => {
                 onChangeFilters?.({ ...safe, assignedOpsId: e.target.value })
                 onResetPage?.()
               }}
-              placeholder="Employee ObjectId…"
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
-            />
+            >
+              <option value="">All ops</option>
+              {safeOpsOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </label>
         ) : null}
 
         {canEditAssignments ? (
           <label className="lg:col-span-2">
-            <span className="text-xs font-semibold text-slate-700">Assigned Sales ID</span>
-            <input
+            <span className="text-xs font-semibold text-slate-700">Assigned Sales</span>
+            <select
               value={safe.assignedSalesId ?? ''}
               onChange={(e) => {
                 onChangeFilters?.({ ...safe, assignedSalesId: e.target.value })
                 onResetPage?.()
               }}
-              placeholder="Employee ObjectId…"
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
-            />
+            >
+              <option value="">All sales</option>
+              {safeSalesOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </label>
         ) : null}
 
