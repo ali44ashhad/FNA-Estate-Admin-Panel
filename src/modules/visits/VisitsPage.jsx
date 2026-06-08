@@ -1,19 +1,18 @@
 import { useMemo, useState } from 'react'
-import { updateLead } from './api/leads.api.js'
-import LeadPanel from './components/LeadPanel.jsx'
-import LeadsFilters from './components/LeadsFilters.jsx'
-import LeadsPagination from './components/LeadsPagination.jsx'
-import LeadsTable from './components/LeadsTable.jsx'
-import LeadsToolbar from './components/LeadsToolbar.jsx'
-import { useLeads } from './hooks/useLeads.js'
-import { useLeadsPageState } from './hooks/useLeadsPageState.js'
+import { updateVisit } from './api/visits.api.js'
+import VisitPanel from './components/VisitPanel.jsx'
+import VisitsFilters from './components/VisitsFilters.jsx'
+import VisitsPagination from './components/VisitsPagination.jsx'
+import VisitsTable from './components/VisitsTable.jsx'
+import VisitsToolbar from './components/VisitsToolbar.jsx'
+import { useVisits } from './hooks/useVisits.js'
+import { useVisitsPageState } from './hooks/useVisitsPageState.js'
 import { useEmployees } from '../employees/hooks/useEmployees.js'
-import { buildLeadClientSearchHay } from './leads.utils.js'
 
-export default function LeadsPage() {
+export default function VisitsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
-    useLeadsPageState()
-  const { leads, meta, loading, error, refresh } = useLeads({
+    useVisitsPageState()
+  const { visits, meta, loading, error, refresh } = useVisits({
     filters: stableFilters,
     page,
     limit,
@@ -29,14 +28,7 @@ export default function LeadsPage() {
   const [saving, setSaving] = useState(false)
   const [panelError, setPanelError] = useState('')
 
-  const { employees: opsEmployees } = useEmployees({ q: '', role: 'operations', page: 1, limit: 200 })
   const { employees: salesEmployees } = useEmployees({ q: '', role: 'sales', page: 1, limit: 200 })
-
-  const opsOptions = useMemo(() => {
-    return (opsEmployees ?? [])
-      .filter((e) => e?.id)
-      .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
-  }, [opsEmployees])
 
   const salesOptions = useMemo(() => {
     return (salesEmployees ?? [])
@@ -44,24 +36,25 @@ export default function LeadsPage() {
       .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
   }, [salesEmployees])
 
-  const employeeNameById = useMemo(() => {
+  const salesNameById = useMemo(() => {
     const map = new Map()
-    for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e?.email || e.id)
-    for (const e of salesEmployees ?? []) if (e?.id && !map.has(e.id)) map.set(e.id, e?.name || e?.email || e.id)
+    for (const e of salesEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e?.email || e.id)
     return map
-  }, [opsEmployees, salesEmployees])
+  }, [salesEmployees])
 
   const filtered = useMemo(() => {
-    if (!stableQuery) return leads
-    return leads.filter((l) => {
-      const hay = buildLeadClientSearchHay(l).toLowerCase()
+    if (!stableQuery) return visits
+    return visits.filter((v) => {
+      const hay = `${v?.lead?.leadNo ?? ''} ${v?.id ?? ''} ${v?.leadId ?? ''} ${v?.location ?? ''} ${
+        v?.sales?.name ?? ''
+      } ${v?.status ?? ''}`.toLowerCase()
       return hay.includes(stableQuery)
     })
-  }, [leads, stableQuery])
+  }, [visits, stableQuery])
 
-  function openPanel(lead) {
+  function openPanel(v) {
     setPanelError('')
-    setSelected(lead)
+    setSelected(v)
     setPanelOpen(true)
   }
 
@@ -75,7 +68,7 @@ export default function LeadsPage() {
     setPanelError('')
     setSaving(true)
     try {
-      const updated = await updateLead(id, payload)
+      const updated = await updateVisit(id, payload)
       if (!updated?.id) throw new Error('Update failed')
       closePanel()
       await refresh(page)
@@ -88,15 +81,12 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-5">
-      <LeadsToolbar title="Leads" total={meta?.total ?? 0} query={query} onChangeQuery={setQuery} />
+      <VisitsToolbar title="Visits" total={meta?.total ?? 0} query={query} onChangeQuery={setQuery} />
 
-      <LeadsFilters
+      <VisitsFilters
         filters={filters}
         sortBy={sortBy}
         sortOrder={sortOrder}
-        opsOptions={opsOptions}
-        salesOptions={salesOptions}
-        canEditAssignments
         onChangeFilters={setFilters}
         onChangeSortBy={(next) => {
           setSortBy(next)
@@ -109,7 +99,7 @@ export default function LeadsPage() {
         onResetPage={() => setPage(1)}
       />
 
-      <LeadsPagination
+      <VisitsPagination
         meta={meta}
         page={page}
         limit={limit}
@@ -121,34 +111,29 @@ export default function LeadsPage() {
           setPage(1)
         }}
         onClearFilters={() => {
-          setFilters({ status: 'all', projectId: '', userId: '', assignedOpsId: '', assignedSalesId: '' })
-          setSortBy('createdAt')
+          setFilters({ status: 'all', salesId: '', leadId: '', from: '', to: '' })
+          setSortBy('visitTime')
           setSortOrder('desc')
           setPage(1)
         }}
       />
 
-      {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p> : null}
+      {error ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p>
+      ) : null}
 
-      <LeadsTable leads={filtered} loading={loading} employeeNameById={employeeNameById} onOpen={openPanel} />
+      <VisitsTable visits={filtered} loading={loading} salesNameById={salesNameById} onOpen={openPanel} />
 
-      <LeadPanel
+      <VisitPanel
         open={panelOpen}
-        lead={selected}
-        canEditAssignments
-        canScheduleVisit
-        opsOptions={opsOptions}
+        visit={selected}
+        canEditDetails
         salesOptions={salesOptions}
         saving={saving}
         error={panelError}
         onClose={closePanel}
         onSave={onSave}
-        onVisitScheduled={async (updated) => {
-          setSelected(updated)
-          await refresh(page)
-        }}
       />
     </div>
   )
 }
-

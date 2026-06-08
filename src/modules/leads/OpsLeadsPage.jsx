@@ -8,6 +8,7 @@ import LeadsToolbar from './components/LeadsToolbar.jsx'
 import { useLeads } from './hooks/useLeads.js'
 import { useLeadsPageState } from './hooks/useLeadsPageState.js'
 import { useEmployeesLookup } from '../employees/hooks/useEmployeesLookup.js'
+import { buildLeadClientSearchHay } from './leads.utils.js'
 
 export default function OpsLeadsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
@@ -31,6 +32,12 @@ export default function OpsLeadsPage() {
   const { employees: opsEmployees } = useEmployeesLookup({ q: '', role: 'operations', page: 1, limit: 200 })
   const { employees: salesEmployees } = useEmployeesLookup({ q: '', role: 'sales', page: 1, limit: 200 })
 
+  const salesOptions = useMemo(() => {
+    return (salesEmployees ?? [])
+      .filter((e) => e?.id)
+      .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
+  }, [salesEmployees])
+
   const employeeNameById = useMemo(() => {
     const map = new Map()
     for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e.id)
@@ -41,9 +48,7 @@ export default function OpsLeadsPage() {
   const filtered = useMemo(() => {
     if (!stableQuery) return leads
     return leads.filter((l) => {
-      const hay = `${l?.leadNo ?? ''} ${l?.id ?? ''} ${l?.userId ?? ''} ${l?.projectId ?? ''} ${l?.status ?? ''} ${
-        l?.interest?.inventoryKey ?? ''
-      }`.toLowerCase()
+      const hay = buildLeadClientSearchHay(l).toLowerCase()
       return hay.includes(stableQuery)
     })
   }, [leads, stableQuery])
@@ -133,10 +138,16 @@ export default function OpsLeadsPage() {
         open={panelOpen}
         lead={selected}
         canEditAssignments={false}
+        canScheduleVisit
+        salesOptions={salesOptions}
         saving={saving}
         error={panelError}
         onClose={closePanel}
         onSave={onSave}
+        onVisitScheduled={async (updated) => {
+          setSelected(updated)
+          await refresh(page)
+        }}
       />
     </div>
   )

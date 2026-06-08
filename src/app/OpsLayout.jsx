@@ -12,6 +12,8 @@ const OPS_THEME = {
 const OPS_NAV = [
   { to: ROUTES.opsHome, label: 'Ops dashboard' },
   { to: ROUTES.opsLeads, label: 'Leads' },
+  { to: ROUTES.opsVisits, label: 'Visits' },
+  { to: ROUTES.opsPurchases, label: 'Purchases' },
 ]
 
 export default function OpsLayout() {

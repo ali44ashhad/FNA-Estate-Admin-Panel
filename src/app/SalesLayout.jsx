@@ -12,6 +12,7 @@ const SALES_THEME = {
 const SALES_NAV = [
   { to: ROUTES.salesHome, label: 'Sales dashboard' },
   { to: ROUTES.salesLeads, label: 'Leads' },
+  { to: ROUTES.salesVisits, label: 'Visits' },
 ]
 
 export default function SalesLayout() {

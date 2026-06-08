@@ -38,27 +38,27 @@ export default function LeadsFilters({
         </label>
 
         <label className="lg:col-span-3">
-          <span className="text-xs font-semibold text-slate-700">Project ID</span>
+          <span className="text-xs font-semibold text-slate-700">Project</span>
           <input
             value={safe.projectId ?? ''}
             onChange={(e) => {
               onChangeFilters?.({ ...safe, projectId: e.target.value })
               onResetPage?.()
             }}
-            placeholder="ObjectId…"
+            placeholder="Name, code, or 24-char project id…"
             className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
           />
         </label>
 
         <label className="lg:col-span-3">
-          <span className="text-xs font-semibold text-slate-700">User ID</span>
+          <span className="text-xs font-semibold text-slate-700">User</span>
           <input
             value={safe.userId ?? ''}
             onChange={(e) => {
               onChangeFilters?.({ ...safe, userId: e.target.value })
               onResetPage?.()
             }}
-            placeholder="ObjectId…"
+            placeholder="Name, email, or 24-char user id…"
             className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
           />
         </label>

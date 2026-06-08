@@ -40,6 +40,12 @@ export function humanizeInterest(interest) {
   return parts.join(' • ')
 }
 
+export function buildLeadClientSearchHay(lead) {
+  return `${lead?.leadNo ?? ''} ${lead?.id ?? ''} ${lead?.user?.name ?? ''} ${lead?.user?.email ?? ''} ${lead?.projectId ?? ''} ${
+    lead?.status ?? ''
+  } ${lead?.interest?.inventoryKey ?? ''}`
+}
+
 export function buildLeadsQuery({ filters, page, limit, sortBy, sortOrder }) {
   const params = new URLSearchParams()
 

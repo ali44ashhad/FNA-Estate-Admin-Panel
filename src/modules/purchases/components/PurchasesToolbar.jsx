@@ -1,4 +1,4 @@
-export default function LeadsToolbar({ title = 'Leads', subtitle = '', total = 0, query, onChangeQuery, rightSlot }) {
+export default function PurchasesToolbar({ title = 'Purchases', subtitle = '', total = 0, query, onChangeQuery, rightSlot }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -6,7 +6,7 @@ export default function LeadsToolbar({ title = 'Leads', subtitle = '', total = 0
         <p className="mt-1 text-sm text-slate-600">
           {subtitle || (
             <>
-              Manage enquiries and pipeline status.{' '}
+              Track bookings and purchase status.{' '}
               <span className="font-semibold text-slate-800">{typeof total === 'number' ? total : 0}</span> total.
             </>
           )}
@@ -17,7 +17,7 @@ export default function LeadsToolbar({ title = 'Leads', subtitle = '', total = 0
         <input
           value={query}
           onChange={(e) => onChangeQuery?.(e.target.value)}
-          placeholder="Search by lead no / user name / email / projectId…"
+          placeholder="Search by purchase id / inventory key / userId / projectId…"
           className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
         />
         {rightSlot ? <div className="flex items-center justify-end gap-2">{rightSlot}</div> : null}

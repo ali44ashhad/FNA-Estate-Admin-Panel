@@ -15,6 +15,8 @@ const ADMIN_NAV = [
   { to: ROUTES.projects, label: 'Projects' },
   { to: ROUTES.deals, label: 'Deals' },
   { to: ROUTES.leads, label: 'Leads' },
+  { to: ROUTES.visits, label: 'Visits' },
+  { to: ROUTES.purchases, label: 'Purchases' },
   { to: ROUTES.employees, label: 'Employees' },
   { to: ROUTES.users, label: 'Users' },
   { to: ROUTES.profile, label: 'Profile' },

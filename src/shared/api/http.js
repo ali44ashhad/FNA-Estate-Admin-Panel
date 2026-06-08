@@ -1,4 +1,4 @@
-import { getAccessToken, setAccessToken } from '../auth/authStorage.js'
+import { clearAccessToken, clearEmployeeSession, getAccessToken, setAccessToken } from '../auth/authStorage.js'
 
 const DEFAULT_API_BASE_URL = 'http://localhost:5008'
 
@@ -10,6 +10,15 @@ function getApiBaseUrl() {
 
 export async function request(path, { method = 'GET', body, auth = false } = {}) {
   const url = `${getApiBaseUrl()}${path.startsWith('/') ? '' : '/'}${path}`
+
+  function redirectToLogin() {
+    try {
+      const next = `${window.location.pathname}${window.location.search}${window.location.hash}`
+      window.location.assign(`/login?next=${encodeURIComponent(next)}`)
+    } catch {
+      window.location.assign('/login')
+    }
+  }
 
   async function doFetch() {
     const headers = { 'Content-Type': 'application/json' }
@@ -58,6 +67,12 @@ export async function request(path, { method = 'GET', body, auth = false } = {})
           return retry.data
         }
       }
+
+      // Refresh failed or returned no token: clear local session and force re-auth.
+      clearAccessToken()
+      clearEmployeeSession()
+      redirectToLogin()
+      throw new Error('Session expired. Please login again.')
     }
 
     throw new Error(message)

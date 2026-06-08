@@ -16,6 +16,11 @@ import DealsPage from '../modules/deals/DealsPage.jsx'
 import LeadsPage from '../modules/leads/LeadsPage.jsx'
 import OpsLeadsPage from '../modules/leads/OpsLeadsPage.jsx'
 import SalesLeadsPage from '../modules/leads/SalesLeadsPage.jsx'
+import VisitsPage from '../modules/visits/VisitsPage.jsx'
+import OpsVisitsPage from '../modules/visits/OpsVisitsPage.jsx'
+import SalesVisitsPage from '../modules/visits/SalesVisitsPage.jsx'
+import PurchasesPage from '../modules/purchases/PurchasesPage.jsx'
+import OpsPurchasesPage from '../modules/purchases/OpsPurchasesPage.jsx'
 import EmployeesPage from '../modules/employees/EmployeesPage.jsx'
 import UsersPage from '../modules/users/UsersPage.jsx'
 import ProfilePage from '../modules/settings/SettingsPage.jsx'
@@ -45,6 +50,8 @@ export default function App() {
             <Route path={ROUTES.projects} element={<ProjectsPage />} />
             <Route path={ROUTES.deals} element={<DealsPage />} />
             <Route path={ROUTES.leads} element={<LeadsPage />} />
+            <Route path={ROUTES.visits} element={<VisitsPage />} />
+            <Route path={ROUTES.purchases} element={<PurchasesPage />} />
             <Route path={ROUTES.employees} element={<EmployeesPage />} />
             <Route path={ROUTES.users} element={<UsersPage />} />
             <Route path={ROUTES.profile} element={<ProfilePage />} />
@@ -61,6 +68,8 @@ export default function App() {
           >
             <Route path={ROUTES.opsHome} element={<OpsDashboardPage />} />
             <Route path={ROUTES.opsLeads} element={<OpsLeadsPage />} />
+            <Route path={ROUTES.opsVisits} element={<OpsVisitsPage />} />
+            <Route path={ROUTES.opsPurchases} element={<OpsPurchasesPage />} />
           </Route>
 
           <Route
@@ -74,6 +83,7 @@ export default function App() {
           >
             <Route path={ROUTES.salesHome} element={<SalesDashboardPage />} />
             <Route path={ROUTES.salesLeads} element={<SalesLeadsPage />} />
+            <Route path={ROUTES.salesVisits} element={<SalesVisitsPage />} />
           </Route>
         </Routes>
       </AdminSettingsProvider>

@@ -1,19 +1,18 @@
 import { useMemo, useState } from 'react'
-import { updateLead } from './api/leads.api.js'
-import LeadPanel from './components/LeadPanel.jsx'
-import LeadsFilters from './components/LeadsFilters.jsx'
-import LeadsPagination from './components/LeadsPagination.jsx'
-import LeadsTable from './components/LeadsTable.jsx'
-import LeadsToolbar from './components/LeadsToolbar.jsx'
-import { useLeads } from './hooks/useLeads.js'
-import { useLeadsPageState } from './hooks/useLeadsPageState.js'
+import { updateVisit } from './api/visits.api.js'
+import VisitPanel from './components/VisitPanel.jsx'
+import VisitsFilters from './components/VisitsFilters.jsx'
+import VisitsPagination from './components/VisitsPagination.jsx'
+import VisitsTable from './components/VisitsTable.jsx'
+import VisitsToolbar from './components/VisitsToolbar.jsx'
+import { useVisits } from './hooks/useVisits.js'
+import { useVisitsPageState } from './hooks/useVisitsPageState.js'
 import { useEmployeesLookup } from '../employees/hooks/useEmployeesLookup.js'
-import { buildLeadClientSearchHay } from './leads.utils.js'
 
-export default function SalesLeadsPage() {
+export default function OpsVisitsPage() {
   const { filters, setFilters, stableFilters, sortBy, setSortBy, sortOrder, setSortOrder, page, setPage, limit, setLimit } =
-    useLeadsPageState()
-  const { leads, meta, loading, error, refresh } = useLeads({
+    useVisitsPageState()
+  const { visits, meta, loading, error, refresh } = useVisits({
     filters: stableFilters,
     page,
     limit,
@@ -29,27 +28,33 @@ export default function SalesLeadsPage() {
   const [saving, setSaving] = useState(false)
   const [panelError, setPanelError] = useState('')
 
-  const { employees: opsEmployees } = useEmployeesLookup({ q: '', role: 'operations', page: 1, limit: 200 })
   const { employees: salesEmployees } = useEmployeesLookup({ q: '', role: 'sales', page: 1, limit: 200 })
 
-  const employeeNameById = useMemo(() => {
+  const salesOptions = useMemo(() => {
+    return (salesEmployees ?? [])
+      .filter((e) => e?.id)
+      .map((e) => ({ value: e.id, label: e.name || e.email || e.id }))
+  }, [salesEmployees])
+
+  const salesNameById = useMemo(() => {
     const map = new Map()
-    for (const e of opsEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e.id)
-    for (const e of salesEmployees ?? []) if (e?.id && !map.has(e.id)) map.set(e.id, e?.name || e.id)
+    for (const e of salesEmployees ?? []) if (e?.id) map.set(e.id, e?.name || e.id)
     return map
-  }, [opsEmployees, salesEmployees])
+  }, [salesEmployees])
 
   const filtered = useMemo(() => {
-    if (!stableQuery) return leads
-    return leads.filter((l) => {
-      const hay = buildLeadClientSearchHay(l).toLowerCase()
+    if (!stableQuery) return visits
+    return visits.filter((v) => {
+      const hay = `${v?.lead?.leadNo ?? ''} ${v?.id ?? ''} ${v?.leadId ?? ''} ${v?.location ?? ''} ${
+        v?.sales?.name ?? ''
+      } ${v?.status ?? ''}`.toLowerCase()
       return hay.includes(stableQuery)
     })
-  }, [leads, stableQuery])
+  }, [visits, stableQuery])
 
-  function openPanel(lead) {
+  function openPanel(v) {
     setPanelError('')
-    setSelected(lead)
+    setSelected(v)
     setPanelOpen(true)
   }
 
@@ -63,7 +68,7 @@ export default function SalesLeadsPage() {
     setPanelError('')
     setSaving(true)
     try {
-      const updated = await updateLead(id, { status: payload?.status })
+      const updated = await updateVisit(id, payload)
       if (!updated?.id) throw new Error('Update failed')
       closePanel()
       await refresh(page)
@@ -76,12 +81,11 @@ export default function SalesLeadsPage() {
 
   return (
     <div className="space-y-5">
-      <LeadsToolbar
-        title="My leads"
+      <VisitsToolbar
+        title="Visits"
         subtitle={
           <>
-            Leads assigned to you: update <span className="font-semibold text-slate-800">status</span>, add sales notes, and
-            follow up.
+            Ops view: reschedule, reassign sales rep, and update <span className="font-semibold text-slate-800">status</span>.
           </>
         }
         total={meta?.total ?? 0}
@@ -89,11 +93,10 @@ export default function SalesLeadsPage() {
         onChangeQuery={setQuery}
       />
 
-      <LeadsFilters
+      <VisitsFilters
         filters={filters}
         sortBy={sortBy}
         sortOrder={sortOrder}
-        canEditAssignments={false}
         onChangeFilters={setFilters}
         onChangeSortBy={(next) => {
           setSortBy(next)
@@ -106,7 +109,7 @@ export default function SalesLeadsPage() {
         onResetPage={() => setPage(1)}
       />
 
-      <LeadsPagination
+      <VisitsPagination
         meta={meta}
         page={page}
         limit={limit}
@@ -118,22 +121,24 @@ export default function SalesLeadsPage() {
           setPage(1)
         }}
         onClearFilters={() => {
-          setFilters({ status: 'all', projectId: '', userId: '', assignedOpsId: '', assignedSalesId: '' })
-          setSortBy('createdAt')
+          setFilters({ status: 'all', salesId: '', leadId: '', from: '', to: '' })
+          setSortBy('visitTime')
           setSortOrder('desc')
           setPage(1)
         }}
       />
 
-      {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p> : null}
+      {error ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p>
+      ) : null}
 
-      <LeadsTable leads={filtered} loading={loading} employeeNameById={employeeNameById} onOpen={openPanel} />
+      <VisitsTable visits={filtered} loading={loading} salesNameById={salesNameById} onOpen={openPanel} />
 
-      <LeadPanel
+      <VisitPanel
         open={panelOpen}
-        lead={selected}
-        canEditAssignments={false}
-        canScheduleVisit={false}
+        visit={selected}
+        canEditDetails
+        salesOptions={salesOptions}
         saving={saving}
         error={panelError}
         onClose={closePanel}
