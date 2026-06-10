@@ -1,3 +1,4 @@
+import DataTable, { dataTableHeadClass } from '../../../shared/components/DataTable.jsx'
 import { formatMaybeDate, formatMoneyINR } from '../purchases.utils.js'
 
 function StatusPill({ status }) {
@@ -14,10 +15,8 @@ export default function PurchasesTable({ purchases, loading, onOpen }) {
   const items = Array.isArray(purchases) ? purchases : []
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
-        <table className="min-w-[1000px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <DataTable minWidth="min-w-[1000px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">Purchase</th>
               <th className="px-4 py-3">Status</th>
@@ -71,9 +70,7 @@ export default function PurchasesTable({ purchases, loading, onOpen }) {
               </tr>
             ) : null}
           </tbody>
-        </table>
-      </div>
-    </div>
+    </DataTable>
   )
 }
 

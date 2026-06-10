@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import DataTable, { dataTableHeadClass } from '../../shared/components/DataTable.jsx'
 import ToggleSwitch from '../../shared/components/ToggleSwitch.jsx'
 
 const dealTypeOptions = /** @type {const} */ ([
@@ -97,10 +98,8 @@ export default function DealsPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-[1100px] w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+      <DataTable minWidth="min-w-[1100px]">
+            <thead className={dataTableHeadClass}>
               <tr>
                 <th className="px-4 py-3">Deal</th>
                 <th className="px-4 py-3">City</th>
@@ -173,9 +172,7 @@ export default function DealsPage() {
                 </tr>
               ) : null}
             </tbody>
-          </table>
-        </div>
-      </div>
+      </DataTable>
     </div>
   )
 }

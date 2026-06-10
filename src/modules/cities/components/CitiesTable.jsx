@@ -1,9 +1,9 @@
+import DataTable, { dataTableHeadClass } from '../../../shared/components/DataTable.jsx'
+
 export default function CitiesTable({ cities, loading, deletingId, onEdit, onAskDelete }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
-        <table className="min-w-[720px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <DataTable minWidth="min-w-[720px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">City</th>
               <th className="px-4 py-3">State</th>
@@ -56,9 +56,7 @@ export default function CitiesTable({ cities, loading, deletingId, onEdit, onAsk
               </tr>
             ) : null}
           </tbody>
-        </table>
-      </div>
-    </div>
+    </DataTable>
   )
 }
 

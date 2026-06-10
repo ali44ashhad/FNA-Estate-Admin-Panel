@@ -9,17 +9,38 @@ const ADMIN_THEME = {
   userPill: 'bg-emerald-700',
 }
 
-const ADMIN_NAV = [
-  { to: ROUTES.dashboard, label: 'Dashboard' },
-  { to: ROUTES.cities, label: 'Cities' },
-  { to: ROUTES.projects, label: 'Projects' },
-  { to: ROUTES.deals, label: 'Deals' },
-  { to: ROUTES.leads, label: 'Leads' },
-  { to: ROUTES.visits, label: 'Visits' },
-  { to: ROUTES.purchases, label: 'Purchases' },
-  { to: ROUTES.employees, label: 'Employees' },
-  { to: ROUTES.users, label: 'Users' },
-  { to: ROUTES.profile, label: 'Profile' },
+const ADMIN_NAV_SECTIONS = [
+  {
+    label: 'Overview',
+    items: [{ to: ROUTES.dashboard, label: 'Dashboard' }],
+  },
+  {
+    label: 'Content',
+    items: [
+      { to: ROUTES.cities, label: 'Cities' },
+      { to: ROUTES.projects, label: 'Projects' },
+      { to: ROUTES.deals, label: 'Deals' },
+    ],
+  },
+  {
+    label: 'CRM',
+    items: [
+      { to: ROUTES.leads, label: 'Leads' },
+      { to: ROUTES.visits, label: 'Visits' },
+      { to: ROUTES.purchases, label: 'Purchases' },
+    ],
+  },
+  {
+    label: 'Team',
+    items: [
+      { to: ROUTES.employees, label: 'Employees' },
+      { to: ROUTES.users, label: 'Users' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [{ to: ROUTES.profile, label: 'Profile' }],
+  },
 ]
 
 export default function AdminLayout() {
@@ -29,8 +50,7 @@ export default function AdminLayout() {
       kicker="FNA Estate"
       headerTitle="Admin panel"
       theme={ADMIN_THEME}
-      navItems={ADMIN_NAV}
-      sidebarFooter={{ title: 'Admin console', subtitle: 'Manage content & leads.' }}
+      navSections={ADMIN_NAV_SECTIONS}
     />
   )
 }

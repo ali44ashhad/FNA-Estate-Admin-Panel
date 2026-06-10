@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { request } from '../../shared/api/http.js'
+import DataTable, { dataTableHeadClass } from '../../shared/components/DataTable.jsx'
 
 export default function UsersPage() {
   const [users, setUsers] = useState([])
@@ -61,10 +62,8 @@ export default function UsersPage() {
 
       {error ? <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-[820px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+      <DataTable minWidth="min-w-[820px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
@@ -96,9 +95,7 @@ export default function UsersPage() {
               </tr>
             ) : null}
           </tbody>
-        </table>
-        </div>
-      </div>
+      </DataTable>
     </div>
   )
 }

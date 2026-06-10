@@ -1,11 +1,10 @@
+import DataTable, { dataTableHeadClass } from '../../../shared/components/DataTable.jsx'
 import { formatCityLabel, summarizeInventory, summarizePricing } from '../projects.utils.js'
 
 export default function ProjectsTable({ projects, loading, deletingId, onEdit, onAskDelete }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
-        <table className="min-w-[980px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <DataTable minWidth="min-w-[980px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">City</th>
@@ -66,9 +65,7 @@ export default function ProjectsTable({ projects, loading, deletingId, onEdit, o
               </tr>
             ) : null}
           </tbody>
-        </table>
-      </div>
-    </div>
+    </DataTable>
   )
 }
 

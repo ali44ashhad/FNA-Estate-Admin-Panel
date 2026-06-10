@@ -1,3 +1,4 @@
+import DataTable, { dataTableHeadClass } from '../../../shared/components/DataTable.jsx'
 import { formatMaybeDate, humanizeInterest } from '../leads.utils.js'
 
 function StatusPill({ status }) {
@@ -23,10 +24,8 @@ export default function LeadsTable({ leads, loading, employeeNameById, onOpen })
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
-        <table className="min-w-[1200px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <DataTable minWidth="min-w-[1200px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">Lead</th>
               <th className="px-4 py-3">Status</th>
@@ -94,9 +93,7 @@ export default function LeadsTable({ leads, loading, employeeNameById, onOpen })
               </tr>
             ) : null}
           </tbody>
-        </table>
-      </div>
-    </div>
+    </DataTable>
   )
 }
 

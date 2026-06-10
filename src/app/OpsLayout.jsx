@@ -9,11 +9,19 @@ const OPS_THEME = {
   userPill: 'bg-sky-700',
 }
 
-const OPS_NAV = [
-  { to: ROUTES.opsHome, label: 'Ops dashboard' },
-  { to: ROUTES.opsLeads, label: 'Leads' },
-  { to: ROUTES.opsVisits, label: 'Visits' },
-  { to: ROUTES.opsPurchases, label: 'Purchases' },
+const OPS_NAV_SECTIONS = [
+  {
+    label: 'Overview',
+    items: [{ to: ROUTES.opsHome, label: 'Ops dashboard' }],
+  },
+  {
+    label: 'Pipeline',
+    items: [
+      { to: ROUTES.opsLeads, label: 'Leads' },
+      { to: ROUTES.opsVisits, label: 'Visits' },
+      { to: ROUTES.opsPurchases, label: 'Purchases' },
+    ],
+  },
 ]
 
 export default function OpsLayout() {
@@ -23,8 +31,7 @@ export default function OpsLayout() {
       kicker="FNA Estate"
       headerTitle="Operations portal"
       theme={OPS_THEME}
-      navItems={OPS_NAV}
-      sidebarFooter={{ title: 'Operations', subtitle: 'Field & pipeline tasks.' }}
+      navSections={OPS_NAV_SECTIONS}
     />
   )
 }

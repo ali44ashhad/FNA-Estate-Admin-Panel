@@ -1,3 +1,4 @@
+import DataTable, { dataTableHeadClass } from '../../../shared/components/DataTable.jsx'
 import { formatCityLabel } from '../employees.utils.js'
 
 function RoleBadge({ role }) {
@@ -14,10 +15,8 @@ export default function EmployeesTable({ employees, loading, citiesLoading, city
   const isLoading = loading || citiesLoading
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
-        <table className="min-w-[980px] w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <DataTable minWidth="min-w-[980px]">
+          <thead className={dataTableHeadClass}>
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
@@ -60,9 +59,7 @@ export default function EmployeesTable({ employees, loading, citiesLoading, city
               </tr>
             ) : null}
           </tbody>
-        </table>
-      </div>
-    </div>
+    </DataTable>
   )
 }
 

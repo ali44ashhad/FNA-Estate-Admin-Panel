@@ -9,10 +9,18 @@ const SALES_THEME = {
   userPill: 'bg-violet-700',
 }
 
-const SALES_NAV = [
-  { to: ROUTES.salesHome, label: 'Sales dashboard' },
-  { to: ROUTES.salesLeads, label: 'Leads' },
-  { to: ROUTES.salesVisits, label: 'Visits' },
+const SALES_NAV_SECTIONS = [
+  {
+    label: 'Overview',
+    items: [{ to: ROUTES.salesHome, label: 'Sales dashboard' }],
+  },
+  {
+    label: 'Pipeline',
+    items: [
+      { to: ROUTES.salesLeads, label: 'Leads' },
+      { to: ROUTES.salesVisits, label: 'Visits' },
+    ],
+  },
 ]
 
 export default function SalesLayout() {
@@ -22,8 +30,7 @@ export default function SalesLayout() {
       kicker="FNA Estate"
       headerTitle="Sales portal"
       theme={SALES_THEME}
-      navItems={SALES_NAV}
-      sidebarFooter={{ title: 'Sales', subtitle: 'Deals, leads, and follow-ups.' }}
+      navSections={SALES_NAV_SECTIONS}
     />
   )
 }
